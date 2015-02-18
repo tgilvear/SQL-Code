@@ -1,0 +1,54 @@
+select a.Id
+  from ZuoraProd..zAccount a
+  left join SFDCProd..Zuora__CustomerAccount__c s
+    on a.Id = s.Zuora__Zuora_Id__c
+ where a.Status = 'Active'
+   and (s.Zuora__Zuora_Id__c is null
+    or  a.Balance <> s.Zuora__Balance__c
+       )
+
+select p.Id
+  from ZuoraProd..zPayment p
+  left join SFDCProd..Zuora__Payment__c z
+    on p.PaymentNumber = z.Name
+ where p.Status = 'Processed'
+   and (z.Name is null
+    or  z.Zuora__Status__c <> p.Status
+       )
+
+select r.Id
+  from ZuoraProd..zRefund r
+  left join SFDCProd..Zuora__Refund__c z
+    on r.RefundNumber = z.Name
+ where r.Status = 'Processed'
+   and (z.Name is null
+    or  z.Zuora__Status__c <> r.Status
+       )
+
+select i.Id
+  from ZuoraProd..zInvoice i
+  join ZuoraProd..zAccount a
+    on i.Account_ID = a.Id
+  left join SFDCProd..Zuora__ZInvoice__c z
+    on i.Id = z.Zuora__Zuora_Id__c
+ where i.Status = 'Posted'
+   and a.Batch <> 'Batch2'
+   and (z.Zuora__Zuora_Id__c is null
+    or  z.Zuora__Status__c <>  i.Status
+    or  z.Zuora__Balance2__c <> cast(i.Balance as money)
+       ) 
+
+select rpc.Id
+  from ZuoraProd..zRatePlanCharge rpc
+  join ZuoraProd..zRatePlan rp
+    on rp.Id = rpc.RatePlan_Id
+   and rpc.IsLastSegment = 'True'
+   and rp.AmendmentType <> 'RemoveProduct'
+  join ZuoraProd..zSubscription s
+    on rpc.Subscription_Id = s.Id
+  left join SFDCProd..Zuora__SubscriptionProductCharge__c spc
+    on rpc.Id = spc.Zuora__Zuora_Id__c
+ where s.Status = 'Active'
+   and spc.Zuora__Zuora_Id__c is null
+     
+
